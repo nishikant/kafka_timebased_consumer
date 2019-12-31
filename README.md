@@ -21,8 +21,9 @@ java -jar .\target\timebased_consumer-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 It takes bunch of arguments which are displayed in help.
 
-@:~/project/timebased_consumer$ java -jar target/timebased_consumer-1.0-SNAPSHOT-jar-with-dependencies.jar 
+/project/timebased_consumer$ java -jar target/timebased_consumer-1.0-SNAPSHOT-jar-with-dependencies.jar 
 Missing required options: t, s, e, r, i, g
+
 usage: kafka_timebased_consumer.jar
  -e,--end_time <arg>         End time in MilliSeconds where consumer will
                              end listening
@@ -34,4 +35,4 @@ usage: kafka_timebased_consumer.jar
  -s,--start_time <arg>       Start time in MilliSeconds from where
                              consumer will start listening
  -t,--topic <arg>            Name of topic to listen
-@:~/project/timebased_consumer$ 
+/project/timebased_consumer$ 
