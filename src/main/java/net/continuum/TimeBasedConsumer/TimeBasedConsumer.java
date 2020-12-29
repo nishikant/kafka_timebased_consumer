@@ -19,7 +19,6 @@ import org.apache.kafka.common.TopicPartition;
 public class TimeBasedConsumer {
   private static long kPollTimeout = 1000;
   private static int kNumRecordsToProcess = 10;
-  private static int outOfTimeRecords = 10000;
 
   public static void main(String[] args) {
     final Options options = new Options();
@@ -65,14 +64,18 @@ public class TimeBasedConsumer {
     oConsumerGroup.setRequired(true);
     options.addOption(oConsumerGroup);
 
+    Option oDebug = new Option("d", "debug", true, "Will print all messages read. true or false");
+    oDebug.setRequired(false);
+    options.addOption(oDebug);
+
     Option oNosOutOfWindowMsg =
         new Option(
             "o",
             "nos_out_window",
             true,
             "Number of out of window messages. This defines when consumer will end.");
-    oConsumerGroup.setRequired(true);
-    options.addOption(oConsumerGroup);
+    oNosOutOfWindowMsg.setRequired(true);
+    options.addOption(oNosOutOfWindowMsg);
 
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -92,6 +95,8 @@ public class TimeBasedConsumer {
     String regexString = cmd.getOptionValue("regex_string");
     String ipAddr = cmd.getOptionValue("ip_addr");
     String consumerGroup = cmd.getOptionValue("consumer_group");
+    Long nosOutOfWindowMsg = Long.parseLong(cmd.getOptionValue("nos_out_window"));
+    Boolean debug = Boolean.parseBoolean(cmd.getOptionValue("debug"));
     Pattern p = Pattern.compile(regexString);
 
     Properties properties = new Properties();
@@ -115,7 +120,7 @@ public class TimeBasedConsumer {
     long numRecords = 0;
 
     // poll and process the records.
-    while (outOfTimeRecords >= 0) {
+    while (nosOutOfWindowMsg >= 0) {
       ConsumerRecords<String, String> records = consumer.poll(kPollTimeout);
       for (ConsumerRecord<String, String> record : records) {
         // The offsetsForTimes API returns the earliest offset in a topic-partition with a timestamp
@@ -123,7 +128,7 @@ public class TimeBasedConsumer {
         // offset
         // with timestamps lesser than the input timestamp. Let's skip such messages.
         if ((record.timestamp() < startTimestamp) && (record.timestamp() > endTimestamp)) {
-          outOfTimeRecords--;
+          nosOutOfWindowMsg--;
           System.out.println(
               "Skipping out of order record with key "
                   + record.key()
@@ -134,7 +139,7 @@ public class TimeBasedConsumer {
 
         String strSearch = record.value();
         Matcher m = p.matcher(strSearch);
-        if (m.find()) {
+        if (m.find() || debug) {
 
           System.out.println(
               " record key "
